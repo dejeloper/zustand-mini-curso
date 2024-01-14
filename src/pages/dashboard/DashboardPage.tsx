@@ -6,10 +6,13 @@ import {
   IoPawOutline,
 } from "react-icons/io5";
 import { WhiteCard } from "../../components";
-import { useBearsStore } from "../../stores";
+import { useBearsStore, usePersonStore } from "../../stores";
 
 export const Dashboard = () => {
-  const totalBears = useBearsStore((state) => state.computed.totalBears);
+  const totalBears = useBearsStore((state) => state.totalBears);
+  const firstName = usePersonStore((state) => state.firstName);
+  const lastName = usePersonStore((state) => state.lastName);
+  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "";
 
   return (
     <>
@@ -21,13 +24,13 @@ export const Dashboard = () => {
         <WhiteCard centered>
           <IoPawOutline size={50} className="text-indigo-600" />
           <h2>Osos</h2>
-          <p>{totalBears}</p>
+          <p>{totalBears()}</p>
         </WhiteCard>
 
         <WhiteCard centered>
           <IoAccessibilityOutline size={50} className="text-indigo-600" />
           <h2>Persona</h2>
-          <p>Información</p>
+          <p>{fullName}</p>
         </WhiteCard>
 
         <WhiteCard centered>
