@@ -1,9 +1,7 @@
 import { DragEvent, useState } from "react";
-import {
-  IoCheckmarkCircleOutline,
-  IoEllipsisHorizontalOutline,
-} from "react-icons/io5";
+import { IoAddOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import classNames from "classnames";
+import Swal from "sweetalert2";
 import { Task, TaskStatus } from "../../interfaces";
 import { SingleTasks } from "./SingleTasks";
 import { useTaskStore } from "../../stores";
@@ -11,13 +9,36 @@ import { useTaskStore } from "../../stores";
 interface Props {
   title: string;
   task: Task[];
-  value: TaskStatus;
+  status: TaskStatus;
 }
 
-export const JiraTasks = ({ title, value, task }: Props) => {
+export const JiraTasks = ({ title, status, task }: Props) => {
   const isDraggingTask = useTaskStore((state) => !!state.draggingTaskId);
-  const [onDragOver, setOnDragOver] = useState(false);
   const onTaskDrop = useTaskStore((state) => state.onTaskDrop);
+  const addTask = useTaskStore((state) => state.addTask);
+
+  const [onDragOver, setOnDragOver] = useState(false);
+
+  const handleAddTask = async () => {
+    const { isConfirmed, value } = await Swal.fire({
+      title: "Nueva tarea",
+      input: "text",
+      inputPlaceholder: "Escribe el nombre de la tarea",
+      showCancelButton: true,
+      confirmButtonText: "Agregar",
+      cancelButtonText: "Cancelar",
+      inputValidator: (value) => {
+        if (!value) {
+          return "Debes escribir el nombre de la tarea";
+        }
+        return null;
+      },
+    });
+
+    if (!isConfirmed) return;
+
+    addTask(value, status);
+  };
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -31,7 +52,7 @@ export const JiraTasks = ({ title, value, task }: Props) => {
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setOnDragOver(false);
-    onTaskDrop(value);
+    onTaskDrop(status);
   };
 
   return (
@@ -59,8 +80,8 @@ export const JiraTasks = ({ title, value, task }: Props) => {
           <h4 className="ml-4 text-xl font-bold text-navy-700">{title}</h4>
         </div>
 
-        <button>
-          <IoEllipsisHorizontalOutline />
+        <button onClick={handleAddTask}>
+          <IoAddOutline />
         </button>
       </div>
 

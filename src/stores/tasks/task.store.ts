@@ -1,11 +1,20 @@
 import { StateCreator, create } from "zustand";
+import { v4 as uuidv4 } from "uuid";
 import type { Task, TaskStatus } from "../../interfaces";
-import { devtools } from "zustand/middleware";
+import {
+  StateStorage,
+  createJSONStorage,
+  devtools,
+  persist,
+} from "zustand/middleware";
 
 interface TaskStore {
   draggingTaskId?: string;
   tasks: Record<string, Task>;
+
   getTasksByStatus: (status: TaskStatus) => Task[];
+  addTask: (title: string, status: TaskStatus) => void;
+
   setDraggingTaskId: (taskId: string) => void;
   removeDraggingTaskId: () => void;
   changeTaskStatus: (taskId: string, status: TaskStatus) => void;
@@ -25,6 +34,17 @@ const storeApi: StateCreator<TaskStore> = (set, get) => ({
   getTasksByStatus: (status: TaskStatus) => {
     const tasks = Object.values(get().tasks);
     return tasks.filter((task) => task.status === status);
+  },
+
+  addTask: (title: string, status: TaskStatus) => {
+    const newTask: Task = { id: uuidv4(), title, status };
+
+    set((state) => ({
+      tasks: {
+        ...state.tasks,
+        [newTask.id]: newTask,
+      },
+    }));
   },
 
   setDraggingTaskId: (taskId: string) => {
@@ -56,4 +76,24 @@ const storeApi: StateCreator<TaskStore> = (set, get) => ({
   },
 });
 
-export const useTaskStore = create<TaskStore>()(devtools(storeApi));
+const sessionStorage: StateStorage = {
+  getItem: function (name: string): string | Promise<string | null> | null {
+    const data = sessionStorage.getItem(name);
+    return data;
+  },
+  setItem: function (name: string, value: string): void | Promise<void> {
+    sessionStorage.setItem(name, value);
+  },
+  removeItem: function (name: string): void | Promise<void> {
+    sessionStorage.removeItem(name);
+  },
+};
+
+export const useTaskStore = create<TaskStore>()(
+  devtools(
+    persist(storeApi, {
+      name: "task-store",
+      storage: createJSONStorage(() => sessionStorage),
+    })
+  )
+);

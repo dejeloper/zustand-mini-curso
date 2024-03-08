@@ -6,6 +6,7 @@ import { customSessionStorage } from "../storages/session.storage";
 interface PersonState {
   firstName: string;
   lastName: string;
+  fullName: string;
 }
 
 interface ActionsPersonState {
@@ -19,10 +20,13 @@ const storeApi: StateCreator<
 > = (set) => ({
   firstName: "",
   lastName: "",
-  setFirstName: (value: string) =>
-    set({ firstName: value }, false, "setFirstName"),
-  setLastName: (value: string) =>
-    set({ lastName: value }, false, "setLastName"),
+  fullName: "",
+  setFirstName: (value: string) => {
+    set({ firstName: value }, false, "setFirstName");
+  },
+  setLastName: (value: string) => {
+    set({ lastName: value }, false, "setLastName");
+  },
 });
 
 export const usePersonStore = create<PersonState & ActionsPersonState>()(
